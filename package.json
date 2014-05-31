@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/kateray/spyke.git"
   },
+  "scripts": {
+    "start": "node server.js"
+  },
   "engines": {
     "node": "0.10.x"
   },
