@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "express": "4.3.1",
+    "cookie-parser": "*",
+    "body-parser": "*",
+    "express-session": "*",
     "socket.io": "1.0",
     "connect-assets": "*",
     "jade": "*"

@@ -1,5 +1,5 @@
 var socket = io();
-$('form').submit(function(){
+$('#new-message-form').submit(function(){
   socket.emit('chat message', $('#new-message').val());
   $('#new-message').val('');
   return false;

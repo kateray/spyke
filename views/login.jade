@@ -1,0 +1,8 @@
+extends layout
+block append content
+  form(action="/login", method="POST")
+    label(for="user") Name
+    input(type="text", name="user")
+    label(for="password") Password
+    input(type="password", name="password")
+    button Submit
