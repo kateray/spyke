@@ -31,6 +31,13 @@ router.use(function(req, res, next) {
 
 app.use('/chats', router);
 
+sessionVariables = function(req, res, next) {
+  res.locals.session = req.session;
+  next();
+};
+
+app.get('*', sessionVariables);
+
 app.post('/login', function(req, res){
   if (!users[req.body.user] || req.body.password != users[req.body.user].password){
     res.end('Bad username/password');
@@ -61,12 +68,15 @@ app.get('/chats', function(req, res){
 });
 
 io.on('connection', function(socket){
-  console.log('someone connected!');
+  socket.on('join', function(name){
+    socket.nickname = name;
+    socket.broadcast.emit('announcement', name + ' joined the chat.');
+  })
   socket.on('disconnect', function(){
-    console.log('user disconnected');
+    socket.broadcast.emit('announcement', socket.nickname + ' left the chat.');
   });
   socket.on('chat message', function(msg){
-    io.emit('chat message', msg);
+    io.emit('chat message', socket.nickname, msg);
   });
 });
 

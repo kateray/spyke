@@ -4,6 +4,10 @@ html
     title Spyke
     != css('application')
   body
+    if session.logged_in
+      #username
+        = session.name
+      a(href="/logout") logout
     block content
     script(src="/socket.io/socket.io.js")
     script(src="http://code.jquery.com/jquery-1.11.1.js")

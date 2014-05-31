@@ -1,10 +1,10 @@
 {
   "kate": {
     "password": "test"
-    , "name" : "Kate Ray"
+    , "name" : "kate"
   },
   "cody": {
     "password": "test"
-    , "name": "Cody Brown"
+    , "name": "cody"
   }
 }
