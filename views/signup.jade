@@ -1,0 +1,13 @@
+extends layout
+block append content
+  form(role='form', action="/signup",method="post")
+    .form-group
+      label(for="user") Username
+      input(type="text", name="username")
+    .form-group
+      label(for="user") Email
+      input(type="text", name="email")
+    .form-group
+      label(for="password") Password
+      input(type="password", name="password")
+    button Submit

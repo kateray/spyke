@@ -4,8 +4,8 @@ html
     title Spyke
     != css('application')
   body
-    if session.logged_in
+    if (user)
       #username
-        = session.name
+        p #{user.username}
       a(href="/logout") logout
     block content

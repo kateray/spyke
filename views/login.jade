@@ -1,8 +1,10 @@
 extends layout
 block append content
-  form(action="/login", method="POST")
-    label(for="user") Name
-    input(type="text", name="user")
-    label(for="password") Password
-    input(type="password", name="password")
+  form(role='form', action="/login",method="post")
+    .form-group
+      label(for="user") Username
+      input(type="text", name="username")
+    .form-group
+      label(for="password") Password
+      input(type="password", name="password")
     button Submit
