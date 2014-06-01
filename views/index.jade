@@ -1,9 +1,3 @@
 extends layout
 block append content
-  ul#messages
-  form#new-message-form(action="")
-    input#new-message(autocomplete="off")
-    button Send
-  script(src="/socket.io/socket.io.js")
-  script(src="http://code.jquery.com/jquery-1.11.1.js")
-  != js('app')
+  user.chats

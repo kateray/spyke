@@ -22,6 +22,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 var User = require('./models/user');
+var Chat = require('./models/chat');
+var Message = require('./models/message');
+
 
 passport.use(new LocalStrategy(
   function(username, password, done) {
@@ -67,7 +70,6 @@ app.post('/login', passport.authenticate('local', {
   })
 );
 
-
 app.post('/signup', function(req, res){
   User.register(new User({ username : req.body.username, email : req.body.email }), req.body.password, function(err, user) {
     if (err) {
@@ -98,17 +100,51 @@ app.get('/logout', function(req, res) {
     res.redirect('/');
 });
 
-app.get('/ping', function(req, res){
-    res.send("pong!", 200);
-});
-
 app.get('/chats', function(req, res){
   res.render( 'index', { user : req.user });
 });
 
+app.get('/chats/:username', function(req, res){
+  User.findOne({ username: req.params.username }, function (err, partner){
+    var userID = mongoose.Types.ObjectId(req.user.id);
+    var partnerID = mongoose.Types.ObjectId(partner.id);
+    Chat.findOne({
+      $or: [
+        { $and: [{first: userID}, {second: partnerID}]},
+        { $and: [{first: partnerID}, {second: userID}]}
+      ]
+    }, function(err, chat) {
+      if (err) {
+        return console.error(err);
+      }
+      if (chat){
+        console.log(chat.id);
+        res.render( 'chat', { user : req.user, partner: partner, chat: chat });
+      }
+      if (!chat) {
+        var chat = new Chat({first: req.user.id, second: partner.id});
+        chat.save(function (err) {
+          console.log(chat.id);
+          res.render( 'chat', { user : req.user, partner: partner, chat: chat });
+        })
+      }
+    });
+
+
+
+    // Chat.where('users').in([req.user.username, partner.username]).exec(function(err, chat){
+    //   if (!chat) {
+    //     var chat = new Chat({ users: [req.user.id, partner.id] });
+    //   }
+    //   console.log(chat.id);
+    //   res.render( 'chat', { user : req.user, partner: partner });
+    // })
+
+  });
+});
+
 io.on('connection', function(socket){
-  socket.on('join', function(name){
-    socket.nickname = name;
+  socket.on('join', function(author, chat){
     socket.broadcast.emit('announcement', name + ' joined the chat.');
   })
   socket.on('disconnect', function(){

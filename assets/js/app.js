@@ -2,9 +2,9 @@ window.onload = function() {
   var socket = io();
 
   socket.on('connect', function(){
-    //TODO: DO NOT GET INFO FROM DOM
-    name = $('#username').text();
-    socket.emit('join', name);
+    // //TODO: DO NOT GET INFO FROM DOM
+    // name = $('#username').text();
+    socket.emit('join', window.author, window.chat);
   })
 
   socket.on('announcement', function(msg){
