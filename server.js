@@ -101,57 +101,76 @@ app.get('/logout', function(req, res) {
 });
 
 app.get('/chats', function(req, res){
-  res.render( 'index', { user : req.user });
+  var userID = mongoose.Types.ObjectId(req.user.id);
+  // var chatsArray = [];
+  // Chat.find({ users: { $in: [userID]}}, {users: 1}, function(err, chats){
+  //   for (var i = 0; i < chats.length; i++) {
+  //     chatsArray.push(chats[i]['id']);
+  //     // if (chats[i]['users'][0] != req.user.id) chatsArray.push(chats[i]['users'][0]);
+  //     // if (chats[i]['users'][1] != req.user.id) chatsArray.push(chats[i]['users'][1]);
+  //   }
+  // })
+  // console.log(chatsArray);
+  res.render( 'index', { user : req.user});
 });
 
 app.get('/chats/:username', function(req, res){
-  User.findOne({ username: req.params.username }, function (err, partner){
-    var userID = mongoose.Types.ObjectId(req.user.id);
-    var partnerID = mongoose.Types.ObjectId(partner.id);
-    Chat.findOne({
-      $or: [
-        { $and: [{first: userID}, {second: partnerID}]},
-        { $and: [{first: partnerID}, {second: userID}]}
-      ]
-    }, function(err, chat) {
-      if (err) {
-        return console.error(err);
-      }
-      if (chat){
-        console.log(chat.id);
-        res.render( 'chat', { user : req.user, partner: partner, chat: chat });
-      }
+
+  User.findOne({ username: req.params.username}, function(err, partner){
+    var partnerID = partner.id;
+
+    Chat.findOne({ users: {$all: [req.user.id, partner.id]}}, function (err, chat){
+      if (err) return console.error(err);
+
       if (!chat) {
-        var chat = new Chat({first: req.user.id, second: partner.id});
-        chat.save(function (err) {
-          console.log(chat.id);
-          res.render( 'chat', { user : req.user, partner: partner, chat: chat });
+        chat = new Chat({users: [req.user.id, partner.id]});
+        chat.save(function(err){
+          if (err) return console.error(err);
         })
       }
-    });
 
+      Message.find({chat: chat.id}, function(err, messages){
+        // messageArray = [];
+        // for(var i=0; i<messages.length; i++){
+        //   if (messages[i].author == req.user.id) {
+        //     var message = {from: 'me', content: messages[i].content};
+        //     messageArray.push(message);
+        //   } else {
+        //     User.findById(messages[i].author, function(err, user){
+        //       var message = {from: user.username, content: messages[i].content};
+        //       messageArray.push(message);
+        //       return;
+        //     })
+        //   }
+        // }
+        // console.log(messageArray);
+        res.render( 'chat', { user : req.user, partner: partner, chat: chat, messages: messages });
+      })
 
-
-    // Chat.where('users').in([req.user.username, partner.username]).exec(function(err, chat){
-    //   if (!chat) {
-    //     var chat = new Chat({ users: [req.user.id, partner.id] });
-    //   }
-    //   console.log(chat.id);
-    //   res.render( 'chat', { user : req.user, partner: partner });
-    // })
+    })
 
   });
 });
 
 io.on('connection', function(socket){
   socket.on('join', function(author, chat){
-    socket.broadcast.emit('announcement', name + ' joined the chat.');
+    socket.chat = chat;
+    socket.join(chat);
+    socket.user = author;
+    User.findById(author, function(err, user){
+      socket.username = user.username;
+      socket.broadcast.to(chat).emit('announcement', user.username + ' joined the chat.');
+    })
   })
   socket.on('disconnect', function(){
-    socket.broadcast.emit('announcement', socket.nickname + ' left the chat.');
+    socket.broadcast.emit('announcement', socket.username + ' left the chat.');
   });
   socket.on('chat message', function(msg){
-    io.emit('chat message', socket.nickname, msg);
+    var message = new Message({author: socket.user, chat: socket.chat, content: msg});
+    message.save(function(err){
+      if (err) return console.error(err);
+    })
+    socket.broadcast.to(socket.chat).emit('chat message', socket.username, message.content);
   });
 });
 

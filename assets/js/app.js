@@ -1,22 +1,25 @@
 window.onload = function() {
   var socket = io();
 
+  var addMessage = function(msg){
+    $('#messages').append($('<li>').text(msg));
+  }
+
   socket.on('connect', function(){
-    // //TODO: DO NOT GET INFO FROM DOM
-    // name = $('#username').text();
     socket.emit('join', window.author, window.chat);
   })
 
-  socket.on('announcement', function(msg){
-    $('#messages').append($('<li>').text(msg));
-  })
+  socket.on('announcement', addMessage)
+
   $('#new-message-form').submit(function(){
-    socket.emit('chat message', $('#new-message').val());
-    $('#new-message').val('');
+    var msg = $('#message-content').val();
+    socket.emit('chat message', msg);
+    $('#message-content').val('');
+    addMessage('me: ' + msg);
     return false;
   });
-  socket.on('chat message', function(from, text){
-    $('#messages').append($('<li>').text(from + ': ' + text));
-  });
 
+  socket.on('chat message', function(from, text){
+    addMessage(from + ': ' + text);
+  });
 }
